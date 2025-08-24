@@ -23,13 +23,13 @@ const userSchema = new Schema({
   },
 });
 
-userSchema.statics.findByEmail = function (email) {
-  return this.findOne({ email: email });
+userSchema.statics.findByEmail = async function (email) {
+  return await this.findOne({ email: email });
 };
 
-userSchema.statics.create = function (data) {
+userSchema.statics.create = async function (data) {
   const advertisement = new this(data);
-  return advertisement.save();
+  return await advertisement.save();
 };
 
 export default model("User", userSchema);

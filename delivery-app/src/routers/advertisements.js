@@ -59,6 +59,13 @@ router.post("/", async (req, res) => {
       isDeleted: false,
     };
 
+    if (!data.shortText || !data.userId) {
+      return res.status(400).json({
+        error:
+          "advertisements.post: Error: `shortText` and `userId` are required!",
+      });
+    }
+
     const advertisement = await Advertisements.create(data);
     res.status(201).json(advertisement);
   } catch (error) {

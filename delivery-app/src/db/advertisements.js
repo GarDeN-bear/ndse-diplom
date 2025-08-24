@@ -18,17 +18,17 @@ const advertisementsSchema = new Schema({
   },
   userId: {
     type: Types.ObjectId,
-    required: false,
+    required: true,
     unique: false,
   },
   createdAt: {
     type: Date,
-    required: false,
+    required: true,
     unique: false,
   },
   updatedAt: {
     type: Date,
-    required: false,
+    required: true,
     unique: false,
   },
   tags: {
@@ -38,19 +38,19 @@ const advertisementsSchema = new Schema({
   },
   isDeleted: {
     type: Boolean,
-    required: false,
+    required: true,
     unique: false,
   },
 });
 
-advertisementsSchema.statics.create = function (data) {
+advertisementsSchema.statics.create = async function (data) {
   const advertisement = new this(data);
 
-  return advertisement.save();
+  return await advertisement.save();
 };
 
-advertisementsSchema.statics.remove = function (id) {
-  return this.findByIdAndUpdate(
+advertisementsSchema.statics.remove = async function (id) {
+  return await this.findByIdAndUpdate(
     id,
     { isDeleted: true, updatedAt: new Date() },
     { new: true }

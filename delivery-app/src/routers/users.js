@@ -9,12 +9,6 @@ router.get("/", async (req, res) => {
   try {
     const { email } = req.query;
 
-    if (!email) {
-      return res
-        .status(400)
-        .json({ error: "users.get: Error: Email is required!" });
-    }
-
     const user = await User.findByEmail(email);
 
     if (!user) {
@@ -37,7 +31,8 @@ router.post("/", async (req, res) => {
 
     if (!data.email || !data.password || !data.name) {
       return res.status(400).json({
-        error: "users.post: Error: Email, passwordHash and name are required!",
+        error:
+          "users.post: Error: `email`, `password` and `name` are required!",
       });
     }
 
