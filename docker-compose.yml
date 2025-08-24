@@ -1,0 +1,8 @@
+
+services:
+  delivery-app:
+    build: ./delivery-app
+    ports:
+      - "80:3000"
+    environment:
+      - PORT=3000
