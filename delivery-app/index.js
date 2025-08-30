@@ -3,6 +3,7 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import passport from "passport";
 import session from "express-session";
+import path from "path";
 
 import router from "./src/routers/index.js";
 import connectToMongoDb from "./src/db/connection.js";
@@ -17,6 +18,8 @@ initChatHandlers(io);
 app.use(session({ secret: "SECRET" }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+app.use("/upload", express.static(path.join(process.cwd(), "upload")));
 
 app.use(express.json());
 app.use(router);

@@ -1,56 +1,9 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import passport from "passport";
-import LocalStrategy from "passport-local";
 
 import User from "../db/users.js";
-
-passport.use(
-  "local",
-  new LocalStrategy(
-    { usernameField: "email", passwordField: "password" },
-    async (email, password, done) => {
-      try {
-        const user = await User.findOne({ email });
-        if (!user) {
-          return done(null, false);
-        }
-
-        const passwordState = await bcrypt.compare(password, user.passwordHash);
-
-        if (!passwordState) {
-          return done(null, false);
-        }
-        return done(null, user);
-      } catch (error) {
-        done(error);
-      }
-    }
-  )
-);
-
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id).select("-__v");
-    done(null, user);
-  } catch (error) {
-    done(error);
-  }
-});
-
-const requireAuth = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({
-    error: "requireAuth: Error: authentication required!",
-    status: "error",
-  });
-};
+import requireAuth from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -67,6 +20,7 @@ router.get("/me", requireAuth, async (req, res) => {
 
     res.status(200).json({
       data: {
+        id: user.id,
         email: user.email,
         name: user.name,
         contactPhone: user.contactPhone,
