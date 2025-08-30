@@ -1,6 +1,10 @@
 import { Schema, model, Types } from "mongoose";
+import EventEmitter from "events";
 
 import MessageSchema from "./message.js";
+
+class ChatEventEmitter extends EventEmitter {}
+const chatEmitter = new ChatEventEmitter();
 
 const chatSchema = new Schema({
   users: {
@@ -44,12 +48,28 @@ chatSchema.statics.sendMessage = async function (data) {
 
   chat.messages.push(newMessage);
 
-  return await chat.save();
+  chatEmitter.emit("newMessage", {
+    chatId: chat._id,
+    message: newMessage,
+  });
+
+  await chat.save();
+
+  return newMessage;
 };
 
 chatSchema.statics.getHistory = async function (id) {
   const chat = await this.findById(id);
   return chat ? chat.messages : [];
+};
+
+chatSchema.statics.subscribe = function (callback) {
+  chatEmitter.on("newMessage", callback);
+  return () => chatEmitter.off("newMessage", callback);
+};
+
+chatSchema.statics.unsubscribe = function (callback) {
+  chatEmitter.off("newMessage", callback);
 };
 
 export default model("Chat", chatSchema);
