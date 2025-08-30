@@ -129,7 +129,7 @@ router.post("/signin", (req, res, next) => {
   passport.authenticate("local", (error, user, info) => {
     if (error) {
       return res.status(500).json({
-        error: "signin: Error: wrong signin!",
+        error: `signin: Error: ${error}!`,
         status: "error",
       });
     }
@@ -144,7 +144,7 @@ router.post("/signin", (req, res, next) => {
     req.logIn(user, (error) => {
       if (error) {
         return res.status(500).json({
-          error: "signin: Error: wrong signin!",
+          error: `signin: Error: ${error}!`,
           status: "error",
         });
       }
@@ -165,7 +165,7 @@ router.post("/signout", (req, res) => {
   req.logout((error) => {
     if (error) {
       return res.status(500).json({
-        error: "signout: Error: wrong signout!",
+        error: `signout: Error: ${error}!`,
         status: "error",
       });
     }
