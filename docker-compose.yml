@@ -7,6 +7,10 @@ services:
     environment:
       PORT: 3000
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+      SESSION_SECRET: "7f4a8d3e1c9b2a5f6e8c0d7b3a9f1e5c2d8b4a7f0e9c6d5b8a3f1e7c4a9d2b6f8e"
+      NODE_ENV: "production"
+    depends_on:
+      - mongo
   mongo:
     image: mongo
     restart: always

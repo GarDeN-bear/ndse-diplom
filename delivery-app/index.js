@@ -5,6 +5,7 @@ import passport from "passport";
 import session from "express-session";
 import path from "path";
 
+import config from "./config/index.js";
 import router from "./src/routers/index.js";
 import connectToMongoDb from "./src/db/connection.js";
 import initChatHandlers from "./src/server/communication.js";
@@ -15,18 +16,23 @@ const io = new Server(server);
 
 initChatHandlers(io);
 
-app.use(session({ secret: "SECRET" }));
+app.use(session(config.auth.session));
 app.use(passport.initialize());
 app.use(passport.session());
 
-app.use("/upload", express.static(path.join(process.cwd(), "upload")));
+app.use(
+  "/upload",
+  (req, res, next) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).send("Not authorized");
+    }
+    next();
+  },
+  express.static(path.join(process.cwd(), "upload"))
+);
 
 app.use(express.json());
 app.use(router);
-
-const mongoUrl = process.env.ME_CONFIG_MONGODB_URL;
-
-const port = process.env.PORT || 3000;
 
 async function start(port, mongoUrl) {
   try {
@@ -39,4 +45,4 @@ async function start(port, mongoUrl) {
   }
 }
 
-start(port, mongoUrl);
+start(config.server.port, config.mongo.mongoUrl);
