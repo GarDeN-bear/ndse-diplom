@@ -3,6 +3,7 @@ import express from "express";
 import Advertisements from "../db/advertisements.js";
 import requireAuth from "../middleware/auth.js";
 import upload from "../middleware/upload.js";
+import responseHelpers from "../utils/responseHelpers.js";
 
 const router = express.Router();
 
@@ -40,12 +41,12 @@ router.get("/", async (req, res) => {
     }
 
     const advertisements = await Advertisements.find(params).exec();
-    res.status(200).json({ data: advertisements, status: "ok" });
+    return responseHelpers.successResponse(res, advertisements);
   } catch (error) {
-    res.status(500).json({
-      error: `advertisements.get: Error: ${error}!`,
-      status: "error",
-    });
+    return responseHelpers.errorResponse(
+      res,
+      `advertisements.get: Error: ${error}!`
+    );
   }
 });
 
@@ -56,18 +57,12 @@ router.get("/:id", async (req, res) => {
     const advertisement = await Advertisements.findById(id).exec();
 
     if (!advertisement || advertisement.isDeleted) {
-      return res.status(404).json({
-        error: "Advertisement not found",
-        status: "error",
-      });
+      return responseHelpers.notFoundResponse(res);
     }
 
-    res.status(200).json({ data: advertisement, status: "ok" });
+    responseHelpers.successResponse(res, advertisements);
   } catch (error) {
-    res.status(500).json({
-      error: `advertisements.get:id: Error: ${error}!`,
-      status: "error",
-    });
+    responseHelpers.errorResponse(res, `advertisements.get: Error: ${error}!`);
   }
 });
 
@@ -87,20 +82,16 @@ router.post("/", requireAuth, upload.array("images", 10), async (req, res) => {
     };
 
     if (!data.shortText || !data.userId) {
-      return res.status(400).json({
-        error:
-          "advertisements.post: Error: `shortText` and `userId` are required!",
-        status: "error",
-      });
+      return responseHelpers.validationErrorResponse(
+        res,
+        "advertisements.post: Error: `shortText` and `userId` are required!"
+      );
     }
 
     const advertisement = await Advertisements.create(data);
-    res.status(200).json({ data: advertisement, status: "ok" });
+    responseHelpers.successResponse(res, advertisement);
   } catch (error) {
-    res.status(500).json({
-      error: `advertisements.post: Error: ${error}!`,
-      status: "error",
-    });
+    responseHelpers.errorResponse(res, `advertisements.post: Error: ${error}!`);
   }
 });
 
@@ -111,27 +102,24 @@ router.delete("/:id", requireAuth, async (req, res) => {
     let advertisement = await Advertisements.findById(id).exec();
 
     if (!advertisement) {
-      return res.status(404).json({
-        error: "advertisements.delete: Error: Advertisement doesn't exist!",
-        status: "error",
-      });
+      return responseHelpers.notFoundResponse(res, id.toString());
     }
 
     if (advertisement.userId.toString() !== req.user.id) {
-      return res.status(403).json({
-        error: "advertisements.delete: Error: Permission denied!",
-        status: "error",
-      });
+      return responseHelpers.forbiddenResponse(
+        res,
+        "advertisements.delete: Error: Permission denied!"
+      );
     }
 
     advertisement = await Advertisements.remove(id);
 
-    res.status(200).json({ data: advertisement, status: "ok" });
+    responseHelpers.successResponse(res, advertisement);
   } catch (error) {
-    res.status(500).json({
-      error: `advertisements.delete: Error: ${error}!`,
-      status: "error",
-    });
+    responseHelpers.errorResponse(
+      res,
+      `advertisements.delete: Error: ${error}!`
+    );
   }
 });
 

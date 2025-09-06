@@ -4,6 +4,7 @@ import passport from "passport";
 
 import User from "../db/users.js";
 import requireAuth from "../middleware/auth.js";
+import responseHelpers from "../utils/responseHelpers.js";
 
 const router = express.Router();
 
@@ -13,25 +14,17 @@ router.get("/me", requireAuth, async (req, res) => {
 
     const user = await User.findByEmail(data.email);
     if (!user) {
-      return res
-        .status(404)
-        .json({ error: "me: Error: User not found!", status: "error" });
+      return responseHelpers.notFoundResponse(res, data.email);
     }
 
-    res.status(200).json({
-      data: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        contactPhone: user.contactPhone,
-      },
-      status: "ok",
+    responseHelpers.successResponse(res, {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      contactPhone: user.contactPhone,
     });
   } catch (error) {
-    res.status(500).json({
-      error: `get: Error: ${error}!`,
-      status: "error",
-    });
+    responseHelpers.errorResponse(res, `get: Error: ${error}!`);
   }
 });
 
@@ -40,18 +33,18 @@ router.post("/signup", async (req, res) => {
     const { email, password, name, contactPhone } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).json({
-        error: "signup: Error: `email`, `password` and `name` are required!",
-        status: "error",
-      });
+      return responseHelpers.validationErrorResponse(
+        res,
+        "signup: Error: `email`, `password` and `name` are required!"
+      );
     }
 
     let user = await User.findByEmail(email);
     if (user) {
-      return res.status(409).json({
-        error: "signup: Error: User with this email already exists!",
-        status: "error",
-      });
+      return responseHelpers.duplicateEntryResponse(
+        res,
+        "signup: Error: User with this email already exists!"
+      );
     }
 
     const saltRounds = 10;
@@ -64,52 +57,41 @@ router.post("/signup", async (req, res) => {
       contactPhone: contactPhone,
     });
 
-    res.status(201).json({
-      data: {
+    responseHelpers.successResponse(
+      res,
+      {
         email: email,
         name: name,
         contactPhone: contactPhone,
       },
-      status: "ok",
-    });
+      201
+    );
   } catch (error) {
-    res
-      .status(500)
-      .json({ error: `signup: Error: ${error}!`, status: "error" });
+    responseHelpers.errorResponse(res, `signup: Error: ${error}!`);
   }
 });
 
 router.post("/signin", (req, res, next) => {
   passport.authenticate("local", (error, user, info) => {
     if (error) {
-      return res.status(500).json({
-        error: `signin: Error: ${error}!`,
-        status: "error",
-      });
+      return responseHelpers.errorResponse(res, `signin: Error: ${error}!`);
     }
 
     if (!user) {
-      return res.status(401).json({
-        error: "signin: Error: wrong signin!",
-        status: "error",
-      });
+      return responseHelpers.unauthorizedResponse(
+        res,
+        "signin: Error: authentication required!"
+      );
     }
 
     req.logIn(user, (error) => {
       if (error) {
-        return res.status(500).json({
-          error: `signin: Error: ${error}!`,
-          status: "error",
-        });
+        return responseHelpers.errorResponse(res, `signin: Error: ${error}!`);
       }
-
-      return res.status(200).json({
-        data: {
-          email: user.email,
-          name: user.name,
-          contactPhone: user.contactPhone,
-        },
-        status: "ok",
+      return responseHelpers.successResponse(res, {
+        email: user.email,
+        name: user.name,
+        contactPhone: user.contactPhone,
       });
     });
   })(req, res, next);
@@ -118,15 +100,10 @@ router.post("/signin", (req, res, next) => {
 router.post("/signout", (req, res) => {
   req.logout((error) => {
     if (error) {
-      return res.status(500).json({
-        error: `signout: Error: ${error}!`,
-        status: "error",
-      });
+      return responseHelpers.errorResponse(res, `signout: Error: ${error}!`);
     }
 
-    res.status(200).json({
-      status: "ok",
-    });
+    responseHelpers.successResponse(res);
   });
 });
 
